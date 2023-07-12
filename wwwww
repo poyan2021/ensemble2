@@ -1,0 +1,28 @@
+% تعریف مسیر فایل‌های ورودی
+input_folder = 'C:\Models';
+
+% تعریف تعداد مدل‌های اقلیمی
+num_models = 3;
+
+% تعریف وزن‌های مدل‌های اقلیمی
+weights = [0.4, 0.3, 0.3];
+
+% تعریف نام فایل خروجی
+output_file = 'C:\Models\Ensemble.nc';
+
+% بارگذاری داده‌های مدل‌های اقلیمی و میانگین گیری وزنی
+for i = 1:num_models
+    % خواندن داده‌های مدل اقلیمی
+    model_data = ncread(fullfile(input_folder, sprintf('Model%d.nc', i)));
+
+    % محاسبه میانگین داده‌های مدل با در نظر گرفتن وزن‌ها
+    if i == 1
+        ensemble_data = model_data * weights(i);
+    else
+        ensemble_data = ensemble_data + model_data * weights(i);
+    end
+end
+
+% ذخیره داده‌های میانگین گیری شده در فایل جدید
+nccreate(output_file, 'ensemble_data', 'Dimensions', {'lat', size(model_data, 1), 'lon', size(model_data, 2), 'time', size(model_data, 3)});
+ncwrite(output_file, 'ensemble_data', ensemble_data);
